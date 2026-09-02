@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'HGE CELE Terms Quiz',
+  description: 'Build and practice your HGE CELE exam terms with multiple-choice quizzes.',
   generator: 'v0.app',
   icons: {
     icon: [
