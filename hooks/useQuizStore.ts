@@ -1,8 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
-export type QuizOption = { id: string; text: string }
+export type QuizOption = {
+  id: string
+  text: string
+}
+
 export type QuizQuestion = {
   id: string
   term: string
@@ -11,28 +16,44 @@ export type QuizQuestion = {
   createdAt: number
 }
 
-const STORAGE_KEY = 'hge-cele-questions'
-
 export function useQuizStore() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [hydrated, setHydrated] = useState(false)
 
+  // Load questions from Supabase
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY)
-      if (saved) setQuestions(JSON.parse(saved))
-    } catch {
-      setQuestions([])
-    } finally {
+    async function loadQuestions() {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Error loading questions:', error)
+        setQuestions([])
+      } else {
+        const formattedQuestions: QuizQuestion[] = data.map((question) => ({
+          id: question.id,
+          term: question.term,
+          options: question.options,
+          correctId: question.correct_id,
+          createdAt: question.created_at,
+        }))
+
+        setQuestions(formattedQuestions)
+      }
+
       setHydrated(true)
     }
+
+    loadQuestions()
   }, [])
 
-  useEffect(() => {
-    if (hydrated) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(questions))
-  }, [questions, hydrated])
-
-  return { questions, setQuestions, hydrated }
+  return {
+    questions,
+    setQuestions,
+    hydrated,
+  }
 }
 
 export function makeId() {
